@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   minio:
     image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
@@ -13,12 +11,11 @@ services:
       - ./minio-data:/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.minio.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.minio.entrypoints=websecure"
-      - "traefik.http.routers.minio.tls.certresolver=le"
-      - "traefik.http.services.minio.loadbalancer.server.port=9000"
-    networks:
-      - proxy
+      # WebUI (browser)
+      - "traefik.http.routers.minio-ui.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.minio-ui.entrypoints=websecure"
+      - "traefik.http.routers.minio-ui.tls.certresolver=le"
+      - "traefik.http.services.minio-ui.loadbalancer.server.port=9001"
 
   traefik:
     image: traefik:v3.3
@@ -32,14 +29,9 @@ services:
       - "--certificatesresolvers.le.acme.email=${EMAIL}"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
     ports:
+      - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./acme.json:/letsencrypt/acme.json
       - ./traefik.yml:/etc/traefik/traefik.yml
-    networks:
-      - proxy
-
-networks:
-  proxy:
