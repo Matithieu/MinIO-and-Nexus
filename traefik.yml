@@ -8,7 +8,7 @@ entryPoints:
 certificatesResolvers:
   le:
     acme:
-      email: amarmathieu@gmail.com
+      email: "${EMAIL}"
       storage: /etc/traefik/acme.json
       httpChallenge:
         entryPoint: web
