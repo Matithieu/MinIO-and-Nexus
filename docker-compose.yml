@@ -11,11 +11,25 @@ services:
       - ./minio-data:/data
     labels:
       - "traefik.enable=true"
-      # WebUI (browser)
-      - "traefik.http.routers.minio-ui.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.minio-ui.rule=Host(`minio.${DOMAIN}`)"
       - "traefik.http.routers.minio-ui.entrypoints=websecure"
       - "traefik.http.routers.minio-ui.tls.certresolver=le"
       - "traefik.http.services.minio-ui.loadbalancer.server.port=9001"
+
+  nexus:
+    image: sonatype/nexus3:3.79.1
+    container_name: nexus
+    restart: always
+    volumes:
+      - ./nexus-data:/nexus-data
+    environment:
+      INSTALL4J_ADD_VM_PARAMS: -Xms512m -Xmx2048m -XX:MaxDirectMemorySize=2g
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nexus.rule=Host(`nexus.${DOMAIN}`)"
+      - "traefik.http.routers.nexus.entrypoints=websecure"
+      - "traefik.http.routers.nexus.tls.certresolver=le"
+      - "traefik.http.services.nexus.loadbalancer.server.port=8081"
 
   traefik:
     image: traefik:v3.3
