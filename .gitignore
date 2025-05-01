@@ -1,3 +1,7 @@
 .env
+
 minio-data/*
 !minio-data/.gitkeep
+
+nexus-data/*
+!nexus-data/.gitkeep
