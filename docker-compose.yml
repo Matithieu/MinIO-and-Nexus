@@ -17,20 +17,23 @@ services:
       - "traefik.http.services.minio-ui.loadbalancer.server.port=9001"
 
   nexus:
-    image: sonatype/nexus3:3.79.1
-    container_name: nexus
+    image: sonatype/nexus3:3.82.0
     restart: always
     volumes:
       - ./nexus-data:/nexus-data
-    environment:
-      NEXUS_CONTEXT: v2
-      INSTALL4J_ADD_VM_PARAMS: -Xms512m -Xmx2048m -XX:MaxDirectMemorySize=2g
     labels:
+      # UI access
       - "traefik.enable=true"
-      - "traefik.http.routers.nexus.rule=Host(`nexus.${DOMAIN}`) && PathPrefix(`/v2`)"
+      - "traefik.http.routers.nexus.rule=Host(`nexus.${DOMAIN}`)"
       - "traefik.http.routers.nexus.entrypoints=websecure"
       - "traefik.http.routers.nexus.tls.certresolver=le"
       - "traefik.http.services.nexus.loadbalancer.server.port=8081"
+      # Docker Registry API
+      - "traefik.http.routers.nexus-docker.rule=Host(`docker.${DOMAIN}`)"
+      - "traefik.http.routers.nexus-docker.entrypoints=websecure"
+      - "traefik.http.routers.nexus-docker.tls.certresolver=le"
+      - "traefik.http.routers.nexus-docker.service=nexus-docker"
+      - "traefik.http.services.nexus-docker.loadbalancer.server.port=8085"
 
   traefik:
     image: traefik:v3.3

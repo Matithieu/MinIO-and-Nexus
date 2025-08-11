@@ -1,0 +1,11 @@
+services:
+  nexus:
+    image: sonatype/nexus3:3.82.0
+    volumes:
+      - ./nexus-data:/nexus-data
+    ports:
+      - "8081:8081" # UI access
+      - "8085:8085" # Docker Registry API
+
+volumes:
+  nexus-data:
