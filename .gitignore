@@ -5,3 +5,5 @@ minio-data/*
 
 nexus-data/*
 !nexus-data/.gitkeep
+
+acme.json
