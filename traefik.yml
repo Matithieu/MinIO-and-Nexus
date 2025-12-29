@@ -1,9 +1,19 @@
 entryPoints:
   web:
     address: ":80"
+    transport:
+      respondingTimeouts:
+        readTimeout: 180s
+        writeTimeout: 180s
+        idleTimeout: 180s
 
   websecure:
     address: ":443"
+    transport:
+      respondingTimeouts:
+        readTimeout: 180s
+        writeTimeout: 180s
+        idleTimeout: 180s
 
 certificatesResolvers:
   le:
