@@ -1,24 +1,36 @@
 services:
-  minio:
-    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
-    container_name: minio
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
     restart: always
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    command: server --console-address ":9001" /data
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.transport.respondingtimeouts.readtimeout=180s"
+      - "--entrypoints.web.transport.respondingtimeouts.writetimeout=180s"
+      - "--entrypoints.web.transport.respondingtimeouts.idletimeout=180s"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.transport.respondingtimeouts.readtimeout=180s"
+      - "--entrypoints.websecure.transport.respondingtimeouts.writetimeout=180s"
+      - "--entrypoints.websecure.transport.respondingtimeouts.idletimeout=180s"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.le.acme.email=${EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./minio-data:/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.minio-ui.rule=Host(`minio.${DOMAIN}`)"
-      - "traefik.http.routers.minio-ui.entrypoints=websecure"
-      - "traefik.http.routers.minio-ui.tls.certresolver=le"
-      - "traefik.http.services.minio-ui.loadbalancer.server.port=9001"
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./acme.json:/letsencrypt/acme.json
 
   nexus:
     image: sonatype/nexus3:3.82.0
     restart: always
+    container_name: nexus
+    user: "997:997"
     volumes:
       - ./nexus-data:/nexus-data
     labels:
@@ -28,6 +40,8 @@ services:
       - "traefik.http.routers.nexus.entrypoints=websecure"
       - "traefik.http.routers.nexus.tls.certresolver=le"
       - "traefik.http.services.nexus.loadbalancer.server.port=8081"
+      - "traefik.http.routers.nexus.service=nexus"
+
       # Docker Registry API
       - "traefik.http.routers.nexus-docker.rule=Host(`docker.${DOMAIN}`)"
       - "traefik.http.routers.nexus-docker.entrypoints=websecure"
@@ -35,21 +49,5 @@ services:
       - "traefik.http.routers.nexus-docker.service=nexus-docker"
       - "traefik.http.services.nexus-docker.loadbalancer.server.port=8085"
 
-  traefik:
-    image: traefik:v3.3
-    container_name: traefik
-    restart: always
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.le.acme.tlschallenge=true"
-      - "--certificatesresolvers.le.acme.email=${EMAIL}"
-      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./acme.json:/letsencrypt/acme.json
-      - ./traefik.yml:/etc/traefik/traefik.yml
+volumes:
+  nexus-data:
