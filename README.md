@@ -1,4 +1,4 @@
-# � Nexus Docker Registry with Traefik
+# 💎 Nexus Docker Registry with Traefik
 
 A production-ready Docker setup featuring **Nexus Repository Manager** with integrated Docker registry support, powered by **Traefik** reverse proxy for SSL termination and domain routing.
 
