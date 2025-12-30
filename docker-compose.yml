@@ -19,12 +19,16 @@ services:
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.le.acme.email=${EMAIL}"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      # Disable HTTP/2 for Docker registry
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./acme.json:/letsencrypt/acme.json
+      - ./traefik-dynamic:/etc/traefik/dynamic
 
   nexus:
     image: sonatype/nexus3:3.82.0
@@ -41,6 +45,9 @@ services:
       - "traefik.http.routers.nexus.tls.certresolver=le"
       - "traefik.http.services.nexus.loadbalancer.server.port=8081"
       - "traefik.http.routers.nexus.service=nexus"
+
+      # To disable HTTP/2 for Docker registry
+      - "traefik.http.routers.nexus-docker.tls.options=registry@file"
 
       # Docker Registry API
       - "traefik.http.routers.nexus-docker.rule=Host(`docker.${DOMAIN}`)"
